@@ -75,13 +75,27 @@
  new MutationObserver(updateToggle).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});updateToggle();
  const previewFrames=new Map();
  function sendPreview(frame,play){
-  if(frame.dataset.provider==='tiktok'){
-   frame.contentWindow?.postMessage({'x-tiktok-player':true,type:'mute'},'https://www.tiktok.com');
-   frame.contentWindow?.postMessage({'x-tiktok-player':true,type:play?'play':'pause'},'https://www.tiktok.com');
-  }else{
-   frame.contentWindow?.postMessage(JSON.stringify({event:'command',func:'mute',args:[]}),'https://www.youtube-nocookie.com');
-   frame.contentWindow?.postMessage(JSON.stringify({event:'command',func:play?'playVideo':'pauseVideo',args:[]}),'https://www.youtube-nocookie.com');
-  }
+  const muteAll = () => {
+    try {
+      if(frame.dataset.provider==='tiktok'){
+        frame.contentWindow?.postMessage({'x-tiktok-player':true,type:'mute'},'*');
+        frame.contentWindow?.postMessage({'x-tiktok-player':true,type:'change-volume',value:0},'*');
+        frame.contentWindow?.postMessage({type:'mute'},'*');
+        frame.contentWindow?.postMessage({method:'mute'},'*');
+        frame.contentWindow?.postMessage({'x-tiktok-player':true,type:play?'play':'pause'},'*');
+      }else{
+        frame.contentWindow?.postMessage(JSON.stringify({event:'command',func:'mute',args:[]}),'*');
+        frame.contentWindow?.postMessage(JSON.stringify({event:'command',func:'setVolume',args:[0]}),'*');
+        frame.contentWindow?.postMessage(JSON.stringify({event:'command',func:play?'playVideo':'pauseVideo',args:[]}),'*');
+      }
+    } catch(e) {}
+  };
+  muteAll();
+  setTimeout(muteAll, 100);
+  setTimeout(muteAll, 300);
+  setTimeout(muteAll, 600);
+  setTimeout(muteAll, 1200);
+  setTimeout(muteAll, 2000);
  }
  const previewObserver=new IntersectionObserver(entries=>entries.forEach(entry=>{
   const holder=entry.target;
