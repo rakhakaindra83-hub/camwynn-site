@@ -1,0 +1,7 @@
+/* Drift one full background tile for a seamless loop. */
+body::before {animation:camwynn-star-drift 120s linear infinite;will-change:background-position;}
+@keyframes camwynn-star-drift {from{background-position:center 0;}to{background-position:center 1440px;}}
+.star-glitter-layer {position:fixed;inset:0;z-index:10000;pointer-events:none;overflow:hidden;}
+.star-glitter {position:absolute;left:0;top:0;width:var(--size);height:var(--size);background:var(--color);clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 94%,50% 72%,21% 94%,32% 57%,2% 35%,39% 35%);filter:drop-shadow(0 0 3px #fff);animation:camwynn-glitter-fall 900ms ease-out forwards;will-change:transform,opacity;}
+@keyframes camwynn-glitter-fall {0%{transform:translate(-50%,-50%) rotate(0deg) scale(.3);opacity:0;}15%{opacity:1;transform:translate(-50%,-50%) rotate(25deg) scale(1);}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) rotate(var(--spin)) scale(0);}}
+@media(prefers-reduced-motion:reduce){body::before{animation:none;will-change:auto;}.star-glitter-layer{display:none;}}
