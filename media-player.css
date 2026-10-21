@@ -104,52 +104,62 @@
   }
 }
 
-/* ---------- FLOATING BGM BUTTON (BOTTOM-RIGHT) ---------- */
-#bgm-button {
+/* ---------- FLOATING BGM PANEL (BOTTOM-RIGHT) ---------- */
+#bgm-panel {
   position: fixed;
   right: 24px;
   bottom: 24px;
   z-index: 9998;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
+  gap: 6px;
+  padding: 4px 12px 4px 6px;
   border-radius: 999px;
   border: 1px solid rgba(140, 207, 255, 0.35);
-  background: rgba(16, 28, 48, 0.75);
+  background: rgba(16, 28, 48, 0.82);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 8px 24px rgba(6, 14, 28, 0.38), 0 0 12px rgba(140, 207, 255, 0.15);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s, border-color 0.2s, box-shadow 0.2s;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#bgm-panel:hover {
+  border-color: rgba(140, 207, 255, 0.65);
+  box-shadow: 0 12px 28px rgba(6, 14, 28, 0.45), 0 0 18px rgba(140, 207, 255, 0.3);
+}
+
+#bgm-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 0;
+  background: transparent;
   color: #e6f3ff;
   font-family: 'Inter', system-ui, sans-serif;
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.04em;
   cursor: pointer;
-  box-shadow: 0 8px 24px rgba(6, 14, 28, 0.35), 0 0 12px rgba(140, 207, 255, 0.15);
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s, border-color 0.2s, box-shadow 0.2s;
-  user-select: none;
-  -webkit-user-select: none;
+  transition: background 0.2s, color 0.2s;
 }
 
 #bgm-button:hover {
-  transform: translateY(-2px) scale(1.03);
-  background: rgba(24, 42, 70, 0.88);
-  border-color: rgba(140, 207, 255, 0.65);
-  box-shadow: 0 12px 28px rgba(6, 14, 28, 0.45), 0 0 18px rgba(140, 207, 255, 0.35);
-}
-
-#bgm-button:active {
-  transform: translateY(0) scale(0.98);
+  background: rgba(140, 207, 255, 0.15);
+  color: #fff;
 }
 
 #bgm-button:focus-visible {
   outline: 2px solid #8ccfff;
-  outline-offset: 3px;
+  outline-offset: 2px;
 }
 
 #bgm-button .bgm-icon {
-  width: 18px;
-  height: 18px;
+  width: 17px;
+  height: 17px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -184,14 +194,65 @@
 #bgm-button .bgm-waves span:nth-child(3) { animation-delay: 0.4s; height: 60%; }
 #bgm-button .bgm-waves span:nth-child(4) { animation-delay: 0.1s; height: 100%; }
 
-#bgm-button.is-muted {
-  opacity: 0.75;
-  border-color: rgba(140, 160, 185, 0.25);
-  background: rgba(16, 24, 38, 0.65);
+#bgm-panel.is-muted #bgm-button {
+  opacity: 0.7;
 }
 
-#bgm-button.is-muted .bgm-waves {
+#bgm-panel.is-muted .bgm-waves {
   display: none;
+}
+
+.bgm-volume-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 6px;
+  border-left: 1px solid rgba(140, 207, 255, 0.25);
+}
+
+.bgm-vol-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(140, 207, 255, 0.25);
+  color: #d8eeff;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  font-size: 11px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  line-height: 1;
+  transition: background 0.18s, transform 0.15s;
+}
+
+.bgm-vol-btn:hover {
+  background: rgba(140, 207, 255, 0.25);
+  transform: scale(1.1);
+  color: #fff;
+}
+
+.bgm-vol-btn:active {
+  transform: scale(0.92);
+}
+
+#bgm-vol-slider {
+  width: 72px;
+  height: 4px;
+  accent-color: #8ccfff;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+}
+
+#bgm-vol-text {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #8ccfff;
+  min-width: 28px;
+  text-align: right;
 }
 
 @keyframes bgm-wave {
@@ -199,12 +260,24 @@
   50% { transform: scaleY(1); }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 580px) {
+  #bgm-panel {
+    right: 12px;
+    bottom: 14px;
+    padding: 3px 10px 3px 4px;
+    gap: 4px;
+  }
   #bgm-button {
-    right: 14px;
-    bottom: 16px;
-    padding: 8px 13px;
+    padding: 5px 8px;
     font-size: 12px;
+  }
+  #bgm-vol-slider {
+    width: 56px;
+  }
+  .bgm-vol-btn {
+    width: 22px;
+    height: 22px;
+    font-size: 10px;
   }
   .splash-chibi-wrap {
     width: 180px;

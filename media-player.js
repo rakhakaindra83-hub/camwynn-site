@@ -8,7 +8,14 @@
   // Audio elements
   const bgm = new Audio('assets/audio/bgm.mp3');
   bgm.loop = true;
-  bgm.volume = 0.5; // 50% volume
+
+  // Volume setup: default 30% (0.3)
+  let currentVolume = 0.3;
+  try {
+    const saved = localStorage.getItem('camwynn-bgm-volume');
+    if (saved !== null) currentVolume = parseFloat(saved);
+  } catch (e) {}
+  bgm.volume = currentVolume;
 
   // SFX pools for rapid playback
   const clickSfx = new Audio('assets/audio/click.mp3');
@@ -24,30 +31,56 @@
     } catch (e) {}
   }
 
-  // ---------- BGM CONTROL (Bottom-Right Button) ----------
+  // ---------- BGM CONTROL & VOLUME ----------
   let isMuted = false;
   try {
     isMuted = localStorage.getItem('camwynn-bgm-muted') === 'true';
   } catch (e) {}
   bgm.muted = isMuted;
 
+  const bgmPanel = document.getElementById('bgm-panel');
   const bgmBtn = document.getElementById('bgm-button');
   const bgmStatusText = document.getElementById('bgm-status-text');
+  const volSlider = document.getElementById('bgm-vol-slider');
+  const volDown = document.getElementById('bgm-vol-down');
+  const volUp = document.getElementById('bgm-vol-up');
+  const volText = document.getElementById('bgm-vol-text');
 
-  function updateBgmButton() {
-    if (!bgmBtn) return;
+  function updateBgmUI() {
     const lang = document.documentElement.lang || 'en';
     const isIndo = lang === 'id';
     
-    if (bgm.muted || bgm.paused) {
-      bgmBtn.classList.add('is-muted');
-      bgmBtn.setAttribute('aria-label', isIndo ? 'Bunyikan musik latar' : 'Unmute background music');
-      if (bgmStatusText) bgmStatusText.textContent = isIndo ? 'Muted' : 'Muted';
+    if (bgm.muted || bgm.paused || currentVolume <= 0) {
+      if (bgmPanel) bgmPanel.classList.add('is-muted');
+      if (bgmBtn) {
+        bgmBtn.setAttribute('aria-label', isIndo ? 'Bunyikan musik latar' : 'Unmute background music');
+        if (bgmStatusText) bgmStatusText.textContent = isIndo ? 'Muted' : 'Muted';
+      }
     } else {
-      bgmBtn.classList.remove('is-muted');
-      bgmBtn.setAttribute('aria-label', isIndo ? 'Bisukan musik latar' : 'Mute background music');
-      if (bgmStatusText) bgmStatusText.textContent = isIndo ? 'Musik' : 'Music';
+      if (bgmPanel) bgmPanel.classList.remove('is-muted');
+      if (bgmBtn) {
+        bgmBtn.setAttribute('aria-label', isIndo ? 'Bisukan musik latar' : 'Mute background music');
+        if (bgmStatusText) bgmStatusText.textContent = isIndo ? 'Musik' : 'Music';
+      }
     }
+
+    const pct = Math.round(currentVolume * 100);
+    if (volSlider) volSlider.value = pct;
+    if (volText) volText.textContent = pct + '%';
+  }
+
+  function setVolume(v) {
+    currentVolume = Math.max(0, Math.min(1, Math.round(v * 100) / 100));
+    bgm.volume = currentVolume;
+    if (currentVolume > 0 && bgm.muted) {
+      bgm.muted = false;
+      isMuted = false;
+      try { localStorage.setItem('camwynn-bgm-muted', 'false'); } catch (e) {}
+    }
+    try {
+      localStorage.setItem('camwynn-bgm-volume', String(currentVolume));
+    } catch (e) {}
+    updateBgmUI();
   }
 
   function toggleBgm() {
@@ -55,7 +88,7 @@
     if (bgm.paused) {
       bgm.muted = false;
       isMuted = false;
-      bgm.play().then(updateBgmButton).catch(() => {});
+      bgm.play().then(updateBgmUI).catch(() => {});
     } else if (bgm.muted) {
       bgm.muted = false;
       isMuted = false;
@@ -66,15 +99,35 @@
     try {
       localStorage.setItem('camwynn-bgm-muted', String(isMuted));
     } catch (e) {}
-    updateBgmButton();
+    updateBgmUI();
   }
 
-  if (bgmBtn) {
-    bgmBtn.addEventListener('click', toggleBgm);
+  if (bgmBtn) bgmBtn.addEventListener('click', toggleBgm);
+
+  if (volSlider) {
+    volSlider.addEventListener('input', (e) => {
+      setVolume(Number(e.target.value) / 100);
+    });
+  }
+
+  if (volDown) {
+    volDown.addEventListener('click', (e) => {
+      e.stopPropagation();
+      playSfx(clickSfx);
+      setVolume(currentVolume - 0.1);
+    });
+  }
+
+  if (volUp) {
+    volUp.addEventListener('click', (e) => {
+      e.stopPropagation();
+      playSfx(clickSfx);
+      setVolume(currentVolume + 0.1);
+    });
   }
 
   // Update button text when language changes
-  new MutationObserver(updateBgmButton).observe(document.documentElement, {
+  new MutationObserver(updateBgmUI).observe(document.documentElement, {
     attributes: true,
     attributeFilter: ['lang']
   });
@@ -103,10 +156,10 @@
     const prompt = document.querySelector('.splash-prompt');
     if (prompt) prompt.style.opacity = '0';
 
-    // Start background music at 50% volume
-    bgm.volume = 0.5;
+    // Start background music at default volume (30%)
+    bgm.volume = currentVolume;
     if (!isMuted) {
-      bgm.play().then(updateBgmButton).catch(() => {});
+      bgm.play().then(updateBgmUI).catch(() => {});
     }
 
     // Explosion runs ~2s; fade out splash smoothly and remove
@@ -116,7 +169,7 @@
 
     setTimeout(() => {
       if (splash) splash.style.display = 'none';
-      updateBgmButton();
+      updateBgmUI();
     }, 2300);
   }
 
@@ -138,10 +191,10 @@
     const target = e.target;
     if (!target || !target.closest) return;
     const btn = target.closest(buttonSelector);
-    if (!btn || btn.closest('#splash-screen')) return;
+    if (!btn || btn.closest('#splash-screen') || btn.closest('#bgm-panel')) return;
 
     const now = performance.now();
-    if (now - lastHoverTime < 70) return; // Debounce rapid hovering
+    if (now - lastHoverTime < 70) return;
     lastHoverTime = now;
     playSfx(hoverSfx);
   }, true);
@@ -150,10 +203,12 @@
     const target = e.target;
     if (!target || !target.closest) return;
     const btn = target.closest(buttonSelector);
-    if (!btn || btn.closest('#splash-screen') || btn === bgmBtn) return;
+    if (!btn || btn.closest('#splash-screen') || btn.closest('#bgm-panel')) return;
     playSfx(clickSfx);
   }, true);
 
-  // Expose global controller for debug if needed
-  window.__camwynnMedia = { bgm, playSfx, clickSfx, hoverSfx, dismissSplash };
+  updateBgmUI();
+
+  // Expose global controller
+  window.__camwynnMedia = { bgm, setVolume, playSfx, clickSfx, hoverSfx, dismissSplash };
 })();
